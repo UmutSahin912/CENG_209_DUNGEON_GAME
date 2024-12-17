@@ -1,377 +1,255 @@
-# CENG_209_DUNGEON_GAME
- Textbased Dungeon Game with C
-Dungeon Adventure Game
-Overview
-Dungeon Adventure Game is a text-based adventure game written in C. Players navigate through a dungeon composed of interconnected rooms, each filled with items, creatures, and traps. The objective is to explore the dungeon, collect valuable items, battle creatures (including formidable bosses), and ultimately conquer the final challenge to finish the game. The game emphasizes strategic movement, inventory management, and combat tactics.
+##README
+##Dungeon Adventure Game
 
-Gameplay
-Starting the Game
-Initialization:
-When the game starts, the player is placed in the first room of the dungeon. The initial room's description is displayed, along with available exits.
+##Introduction
+This project is a text-based adventure game set in a fictional dungeon environment. The player starts in a single room and explores a network of interconnected rooms, each containing items, creatures, and traps. The player can navigate, fight enemies (including bosses), pick up and use various items, and ultimately aims to reach and defeat the final boss to finish the game. This README provides a comprehensive guide on how the game works, how to compile and run it, and details about its design and implementation.
 
-Player Stats:
-The player's stats, including health, strength, defense, and inventory, are initialized.
+##Key Features
+Exploration & Navigation:
+Move through a network of NUM_ROOMS (12 by default), arranged both horizontally and vertically.
+Use directional commands (move up/down/left/right) to travel and discover new areas.
+Each room comes with unique descriptions and possible traps.
 
-Basic Commands
-Players interact with the game using text commands. Below are the primary commands available:
+##Room Contents:
+Rooms can contain items, creatures, and traps.
+Boss rooms exist at specific room IDs (3, 6, 9, and 12), each with a unique boss creature.
+Items are randomly distributed, providing replay value.
 
-Movement:
+##Combat Mechanics:
+Engage with creatures found in the rooms.
+Attack them with the attack command. If the creature survives, it will retaliate.
+Defeating boss creatures is necessary to progress toward the final goal.
 
-move up: Move to the room above the current room.
-move down: Move to the room below the current room.
-move left: Move to the room to the left of the current room.
-move right: Move to the room to the right of the current room.
-Examination:
+##Items and Inventory Management:
+Collect and carry up to MAX_INVENTORY (10) items.
+Items offer various effects: healing potions, temporary stat boosts, revival stones, and permanent upgrades.
+Use (use <item>) items at any time to gain their benefits.
+Discard (discard <item>) items to free inventory space.
 
-look: Examine the current room to see its description, available exits, items present, and any creatures inhabiting the room.
-Inventory Management:
+##Checkpoints & Revivals:
+The player's current room is set as a checkpoint upon saving.
+Dying without a revive item returns the player to the last checkpoint with full health.
+If carrying a Revive Stone, the player is automatically revived at 30% max health upon death, without losing progress.
 
-inventory: Display all items you're carrying.
-pickup <item>: Pick up a specified item from the current room and add it to your inventory (if you have space).
-use <item>: Use a specified item from the inventory to gain its effects.
-discard <item>: Remove a specified item from the inventory permanently.
-Combat:
+##Saving & Loading Progress:
+Save the current game state (player stats, inventory, room states) to a file.
+Reload the saved state to continue your adventure later.
 
-attack: Engage in combat with the creature present in the current room.
-Player Information:
+##Traps & Hidden Dangers:
+Some rooms contain traps that may damage the player after using the look command.
+Traps trigger with a certain probability, adding risk to exploration.
 
-info: Display the player's current health and strength stats.
-Game Control:
+##Repository Structure and Files
 
-save: Save the current game state to a file. The player will be prompted to enter a filename.
-load: Load a previously saved game state from a file. The player will be prompted to enter a filename.
-help: Display a list of all available commands.
-quit: Exit the game.
-Detailed Command Descriptions
-move <direction>:
+##main.c:
+The entry point of the program.
+Initializes the player’s stats.
+Calls initializeRooms() to set up the dungeon.
+Assigns the starting room and checkpoint room.
+Initiates the main game loop (gameLoop()).
 
-Description: Moves the player in the specified direction if an exit exists.
-Directions: up, down, left, right.
-Example: move up
-look:
+##game.h:
+The header file that includes all the necessary constants, structure definitions, and function prototypes.
+Defines constants for inventory size, room counts, item counts, etc.
+Declares structures for Player, Room, Creature, and Item.
+Declares all functions used to manage the game state and logic.
 
-Description: Provides a detailed description of the current room.
-Effects: Lists all available exits, displays any items present, shows information about any creature present, and triggers traps.
-inventory:
+##game.c:
+Implements the core game logic defined in game.h.
+Initialization functions: initializeRooms(), createRoom(), and connectRooms()
+Gameplay mechanics: Movement (movePlayer()), looking around (look()), picking up items (pickupItem()), using items (useItem()), attacking (attack()), and discarding items (discardItem()).
+Status and effects: Updating potion durations (updatePotionsOnRoomChange()), resetting temporary buffs (resetFlameWeapon()), and handling trap triggers (triggerTrapsAfterLook()).
+Creatures and Bosses: Functions createBoss(), createNormalCreature() and combat resolution in attackCreature().
+Saving & Loading: saveGame() and loadGame() handle serialization and deserialization of game state.
+Game flow: gameLoop() processes player input and coordinates game actions until completion or death.
 
-Description: Lists all items currently carried by the player.
-Note: If the inventory is empty, it displays "Empty."
-pickup <item>:
+##Data Structures and Their Roles
+##Player Structure:
+c
+typedef struct Player {
+    int health;
+    int maxHealth;
+    int strength;
+    int defense;
+    int attackSpeed;
+    int inventoryCount;
+    Item *inventory[MAX_INVENTORY];
+    Room *currentRoom;
+    Room *checkPointRoom;
 
-Description: Allows the player to pick up an item from the room and add it to their inventory.
-Limit: The inventory has a maximum capacity of 10 items.
-Example: pickup Health Potion
-use <item>:
+    int baseStrength;
+    int baseDefense;
+    int flameWeaponActive;
+    int attackPotionCounter;
+    int defensePotionCounter;
 
-Description: Uses an item from the inventory, applying its effects to the player.
-Example: use Health Potion
-discard <item>:
+    int gameFinished;
+} Player;
+Fields:
+health, maxHealth: Manage player's survivability.
+strength, defense: Combat stats affecting damage dealt and taken.
+attackSpeed: Currently unused in the provided logic, but could influence future combat mechanics.
+inventoryCount, inventory[]: Store items the player carries.
+currentRoom, checkPointRoom: Track player's current location and the room to respawn after death.
+baseStrength, baseDefense: Original stats used to reset after temporary potion buffs expire.
+flameWeaponActive, attackPotionCounter, defensePotionCounter: Flags and counters for managing temporary effects.
+gameFinished: A flag indicating that the player has defeated the final boss and completed the game.
 
-Description: Removes an item from the inventory permanently.
-Example: discard Zensu Beans
-attack:
 
-Description: Engages in combat with the creature present in the room.
-Mechanics: The player's strength reduces the creature's health. If the creature survives, it retaliates.
-info:
+##Room Structure:
+c
+typedef struct Room {
+    char description[MAX_DESC_LENGTH];
+    int roomID;
+    Item *items[MAX_ITEMS];
+    int itemCount;
+    Creature *creature;
+    int isBossRoom;
+    int trapCount;
+    struct Room *up;
+    struct Room *down;
+    struct Room *left;
+    struct Room *right;
+} Room;
+Fields:
+description: Text describing the room.
+roomID: Unique ID (1 to 12).
+items[], itemCount: Items present in the room.
+creature: A pointer to a creature (boss or normal) occupying the room.
+isBossRoom: Indicates if the room contains a boss.
+trapCount: How many traps are in the room.
+up, down, left, right: Pointers to adjacent rooms for navigation.
 
-Description: Displays the player's current health and strength stats.
-save:
 
-Description: Saves the current game state to a specified file.
-Process: Prompts the player to enter a filename (e.g., save1.txt).
-Checkpoint: Sets the current room as a checkpoint before saving.
-load:
+##Creature Structure:
+c
+typedef struct Creature {
+    char name[MAX_NAME_LENGTH];
+    int health;
+    int attackPower;
+    int isBoss;
+    int bossRoomID;
+} Creature;
+Fields:
+name, health, attackPower: Defines the creature's stats.
+isBoss: Flag to determine if the creature is a boss.
+bossRoomID: Specifies which room is assigned as that boss’s territory.
 
-Description: Loads a previously saved game state from a specified file.
-Process: Prompts the player to enter a filename (e.g., save1.txt).
-help:
 
-Description: Displays a list of all available commands with brief descriptions.
-quit:
+##Item Structure:
+c
+typedef struct Item {
+    char name[MAX_NAME_LENGTH];
+    char description[MAX_DESC_LENGTH];
+    int effectType;
+} Item;
+Fields:
+name, description: Identifying information.
+effectType: An integer specifying what the item does (e.g., 1 for health potion, 2 for attack potion, etc.).
 
-Description: Exits the game gracefully, performing necessary memory clean-up.
-Code Structure
-The project is organized into three primary files:
+##Items and Their Effects
+Health Potion (effectType = 1): Restores 50 HP, capped at max health.
+Attack Potion (effectType = 2): Increases the player's strength by +10 for the next 2 room movements.
+Defense Potion (effectType = 3): Increases the player's defense by +5 for the next 2 room movements.
+Revive Stone (effectType = 4): Passive item. If the player dies, it automatically revives them to 30% of max health and is then consumed.
+Flame Weapon (effectType = 5): Increases the player's strength by +20 until they leave the current room.
+Zensu Beans (effectType = 6): Permanently increase max health by 40 and also heal the player by 40 HP immediately.
 
-1. game.h
-Purpose:
-Defines the core data structures (Item, Creature, Room, Player) used throughout the game. Declares constants, global variables, and function prototypes.
+##How to Play
+##Starting the Game:
+Run the compiled executable.
+You start in room 1 with default stats and no items.
 
-Key Components:
+##Commands:
+move <direction>: Move to an adjacent room if it exists. Directions: up, down, left, right.
+look: Inspect the current room. Reveals exits, items, and creatures. Also triggers traps.
+inventory: List your items.
+pickup <item_name>: Collect an item found in the room and add it to your inventory.
+use <item_name>: Activate an item's effect from your inventory.
+discard <item_name>: Remove an item from your inventory without using it.
+attack: Attack the creature in the room (if any).
+info: Display your current health and strength.
+save: Prompts for a filename and saves the current game state.
+load: Prompts for a filename and loads a previously saved state.
+quit: Exits the game.
+help: Prints a list of available commands.
 
-Structures:
-Item: Represents items with a name, description, and effect type.
-Creature: Represents entities that the player can encounter, with attributes like health and attack power.
-Room: Represents each room in the dungeon, containing descriptions, items, creatures, traps, and connections to other rooms.
-Player: Represents the player's state, including stats and inventory.
-Constants:
-MAX_INVENTORY, MAX_DESC_LENGTH, MAX_NAME_LENGTH, etc., define limits for various game elements.
-Function Prototypes:
-Includes all game-related functions for room initialization, player actions, combat, saving/loading, and utilities.
-2. game.c
-Purpose:
-Implements all functions declared in game.h. Manages game logic, including room setup, player interactions, combat mechanics, and game state management.
+##Progression:
+Explore the dungeon, defeating bosses at rooms 3, 6, 9, and finally 12.
+The game ends successfully when you defeat the boss in the final room (room 12).
 
-Key Components:
+##Death and Checkpoints:
+If your health drops to 0 and you have a Revive Stone, you are revived automatically.
+Without a Revive Stone, you return to the checkpoint room (last saved room) at full health.
+Saving and Loading the Game
 
-Global Variables:
-Room *rooms[NUM_ROOMS];: An array holding pointers to all rooms in the dungeon.
-Static Data:
-hardcodedRoomDescs: Descriptions for each room.
-hardcodedItems: Predefined items available in the game.
-hardcodedNormalCreatures: Predefined normal creatures with their stats.
-hardcodedBossCreatures: Predefined boss creatures, each linked to specific rooms.
-Functions:
-Utility Functions:
-randomBetween: Generates a random number within a specified range.
-createItem, createNormalCreature, createBoss: Functions to instantiate items and creatures.
-createRoom: Initializes a room with items and a creature based on its type.
-connectRooms: Establishes connections between rooms to allow navigation.
-initializeRooms: Sets up all rooms at the start of the game.
-Player Interaction Functions:
-movePlayer: Handles player movement between rooms, updates stats, and manages effects.
-look: Provides detailed information about the current room and triggers traps.
-showInventory: Displays the player's inventory.
-pickupItem, useItem, discardItem: Manage inventory actions.
-attackCreature, attack: Handle combat mechanics.
-saveGame, loadGame: Manage game state persistence.
-showHelp: Displays available commands.
-gameLoop: The main game loop that processes player commands and updates the game state.
-Special Mechanics Functions:
-hasReviveStone: Checks if the player possesses a Revive Stone.
-revivePlayer: Handles player revival mechanics upon death.
-resetFlameWeapon: Resets flame weapon effects when leaving a room.
-updatePotionsOnRoomChange: Manages temporary potion effects based on room changes.
-triggerTrapsAfterLook: Activates traps after the player uses the look command.
-finishGame, showFinalStats: Handle game completion and display final player stats.
-3. main.c
-Purpose:
-Serves as the entry point of the game. Initializes the player and rooms, starts the game loop, and handles memory cleanup upon game termination.
+##Saving:
+Use the save command and provide a filename (e.g., Umut1.txt).
+The current room becomes your checkpoint room.
+The file will store your stats, current room, inventory, and other relevant details.
 
-Key Components:
+##Loading:
+Use the load command and specify the filename used previously.
+Your player state, inventory, and room position are restored to the saved snapshot.
+Traps and Risks
+After looking around (using look):
+The game checks if any traps are triggered.
+Each trap has a 50% chance to deal 10 damage.
+If you die from traps and have no Revive Stone, you respawn at the checkpoint.
 
-main Function:
-Seeds the random number generator.
-Initializes the player's stats and inventory.
-Calls initializeRooms to set up the dungeon.
-Sets the player's starting room and checkpoint room.
-Starts the game loop by calling gameLoop.
-Upon exiting the game loop, performs memory cleanup by freeing all dynamically allocated memory for rooms, items, and creatures to prevent memory leaks.
-Game Logic
-Rooms and Navigation
-Dungeon Layout:
+##Compilation and Execution
+##Requirements:
+A C compiler like gcc.
+A UNIX-like environment is recommended for convenience.
 
-The dungeon consists of 12 rooms, each uniquely identified by a roomID (1 to 12).
-Rooms are interconnected through up, down, left, and right pointers, allowing players to navigate between them.
-Some rooms are designated as boss rooms (rooms 3, 6, 9, and 12), containing powerful boss creatures.
-Room Initialization:
-
-Each room is created using the createRoom function, which assigns a description, populates it with items, and adds a creature (normal or boss) based on the room type.
-Items within rooms are randomly selected from predefined types, ensuring variety in each playthrough.
-Connections between rooms are established using the connectRooms function, defining the dungeon's layout.
-Items and Inventory Management
-Item Types and Effects:
-
-Health Potion (EffectType 1): Restores 50 HP when used.
-Attack Potion (EffectType 2): Increases player strength by 10 for 2 rooms.
-Defense Potion (EffectType 3): Increases player defense by 5 for 2 rooms.
-Revive Stone (EffectType 4): Passive item that revives the player upon death, restoring 30% health.
-Flame Weapon (EffectType 5): Greatly increases player strength by 20 until they leave the current room.
-Zensu Beans (EffectType 6): Permanently increases the player's maximum health by 40.
-Inventory Mechanics:
-
-The player's inventory can hold up to 10 items.
-Items can be picked up from rooms using the pickupItem function, which adds the item to the inventory if space permits.
-Items can be used via the useItem function, applying their effects to the player.
-Items can be discarded using the discardItem function, freeing up inventory space.
-Passive items like the Revive Stone cannot be actively used but provide automatic benefits.
-Creatures and Combat Mechanics
-Creature Types:
-
-Normal Creatures:
-Goblin: 60 HP, 10 ATK.
-Spider: 40 HP, 20 ATK.
-Boss Creatures:
-Master Mantis: 120 HP, 30 ATK (Room 3).
-Giant Serpent: 140 HP, 35 ATK (Room 6).
-Kraken: 160 HP, 40 ATK (Room 9).
-Dragonoid: 180 HP, 45 ATK (Room 12).
-Combat Flow:
-
-Initiated by the attack command.
-The player's strength reduces the creature's health.
-If the creature survives, it retaliates by dealing damage based on its attack power and the player's defense.
-Defeating a creature removes it from the room.
-Defeating the boss in Room 12 triggers the finishGame function, ending the game successfully.
-Bosses may drop special items like the Boss Relic upon defeat.
-Traps
-Trap Mechanics:
-
-Each room may contain a random number of traps (0 to 3).
-Traps are triggered after the player uses the look command.
-Each trap has a 50% chance to activate, dealing 10 damage to the player.
-Trap Consequences:
-
-If a trap deals damage that reduces the player's health to 0 or below, the player dies.
-If the player has a Revive Stone in their inventory, it automatically revives them with 30% of their maximum health.
-Otherwise, the player respawns at the last checkpoint room with full health.
-Checkpoints and Save/Load Functionality
-Checkpoints:
-
-The player's current room is set as a checkpoint before saving the game.
-This ensures that if the player dies without a Revive Stone, they respawn at this checkpoint room.
-Saving the Game:
-
-Executed via the save command.
-Prompts the player to enter a filename to save the game state.
-Saves the player's stats, current room, inventory, and other relevant data to the specified file.
-Loading the Game:
-
-Executed via the load command.
-Prompts the player to enter a filename to load the game state from.
-Restores the player's stats, current room, inventory, and other relevant data from the specified file.
-Game Completion
-Objective:
-
-The main goal is to navigate through all rooms, defeat creatures and bosses, and ultimately conquer the final boss in Room 12.
-Ending the Game:
-
-Defeating the Dragonoid in Room 12 triggers the finishGame function.
-Displays a congratulatory message along with the player's final stats and inventory.
-The game then terminates gracefully.
-How to Compile and Run
-Prerequisites
-C Compiler: Ensure that you have a C compiler installed (e.g., gcc).
-Compilation Steps
-Organize Files:
-
-Ensure that the following files are in the same directory:
-game.h
-game.c
-main.c
-Open Terminal:
-
-Navigate to the directory containing the game files using the terminal.
-Compile the Code:
-
-Run the following command to compile the game:
+##Compilation Command:
 bash
-Kodu kopyala
-gcc -o dungeon_game main.c game.c
-This command compiles main.c and game.c into an executable named dungeon_game.
-Run the Game:
+gcc -o dungeon main.c game.c
 
-Execute the compiled program by running:
+##Running the Game:
 bash
-Kodu kopyala
-./dungeon_game
-The game will start, displaying a welcome message and prompting for commands.
-Example Session
-plaintext
-Kodu kopyala
-Welcome to the Dungeon Adventure Game!
-Type 'help' for commands.
+./dungeon
 
-> help
-Commands:
-- move <direction>: Move (up, down, left, right).
-- look: Look around the current room.
-- inventory: Show your inventory.
-- pickup <item>: Pick up an item.
-- use <item>: Use an item.
-- discard <item>: Discard an item.
-- attack: Attack the creature.
-- info: Show your stats.
-- save: Will ask for a filename (e.g. save1.txt) and save.
-- load: Will ask for a filename (e.g. save1.txt) and load.
-- quit: Quit.
 
-> look
-You are in Room 1. A dimly lit room with moss on the walls.
-Exits: [Right] [Down] 
-Items in this room:
-- Health Potion: Restores 50 HP.
-- Zensu Beans: Permanently increases your max health by 40.
-There is a creature: Goblin (HP:60, ATK:10)
+##Code Design and Implementation Details
 
-> attack
-You attack the Goblin!
-Goblin's health: 50
-Goblin attacks you for 10 damage. Health: 90
+##Separation of Concerns:
+game.h declares the interfaces and data structures.
+game.c implements all game logic, ensuring a clean separation between declarations and implementations.
+main.c sets up initial conditions and starts the gameplay loop.
 
-> use Health Potion
-You used a Health Potion. Health: 100
+##Memory Management:
+Dynamically allocated memory for rooms, items, and creatures is freed at the end of main() to prevent memory leaks.
+Items and creatures picked up or defeated are properly freed when no longer needed.
 
-> move right
-You move to room 2.
+##Randomization:
+The dungeon layout is consistent but items and traps in rooms vary.
+Random number generation (rand()) is seeded at program start (srand(time(NULL))) to add unpredictability.
 
-> save
-Enter filename to save (e.g. save1.txt): my_save.txt
-Game saved to my_save.txt.
+##Adaptability:
+Changing constants (e.g., NUM_ROOMS, NUM_ITEM_TYPES) in game.h allows for easy scaling of the dungeon size or variety of items.
+The code can be extended to support additional features such as more item types, more complex puzzles, multiple floors, or persistent effects.
 
-> quit
-Goodbye!
-Summary of Commands
-Movement:
+##Extending the Game
+New Items:
+Add new entries to hardcodedItems in game.c and implement their effects in useItem().
 
-move up: Move to the room above.
-move down: Move to the room below.
-move left: Move to the room to the left.
-move right: Move to the room to the right.
-Examination:
+##New Creatures and Bosses:
+Modify or extend hardcodedNormalCreatures and hardcodedBossCreatures.
+Update createBoss() and createNormalCreature() logic as needed.
 
-look: Examine the current room.
-Inventory Management:
+##Additional Rooms and Layouts:
+Increase NUM_ROOMS and add room descriptions and connections in connectRooms().
+Adjust the logic in initializeRooms() to create more diverse or larger dungeons.
 
-inventory: View current inventory.
-pickup <item>: Pick up an item from the room.
-use <item>: Use an item from the inventory.
-discard <item>: Remove an item from the inventory.
-Combat:
+##Complex Mechanics:
+Introduce status effects, new traps, puzzles, locked doors that require keys, or special commands for more interactive gameplay.
 
-attack: Attack the creature in the room.
-Player Information:
+##Disclaimer and License
+This code is provided as-is for educational and entertainment purposes. Feel free to modify, extend, and distribute it. No warranty is provided, and the authors are not liable for any damages arising from its use.
 
-info: View current health and strength.
-Game Control:
-
-save: Save the current game state.
-load: Load a previously saved game state.
-help: Display available commands.
-quit: Exit the game.
-Memory Management
-Dynamic Allocation:
-The game dynamically allocates memory for items and creatures within rooms.
-
-Memory Cleanup:
-Upon quitting the game or completing it, the main function ensures that all allocated memory is freed to prevent memory leaks. This includes freeing all items in rooms, creatures in rooms, and items in the player's inventory.
-
-Contributions and Enhancements
-Players and developers can contribute to enhancing the game by:
-
-Adding New Items:
-
-Introduce new item types with unique effects.
-Expanding the Dungeon:
-
-Increase the number of rooms or add new areas with different themes.
-Introducing More Creatures:
-
-Add variety by introducing new normal and boss creatures with distinct abilities.
-Enhancing Combat Mechanics:
-
-Implement features like critical hits, special abilities, or weapon types.
-Improving Save/Load Functionality:
-
-Optimize the save file structure or add multiple save slots.
-Adding Story Elements:
-
-Introduce a narrative or quests to provide more depth to the gameplay.
-License
-This project is open-source and available under the MIT License.
-
-This README.md provides a comprehensive guide to understanding and playing the Dungeon Adventure Game, as well as insight into its underlying code structure and mechanics. Whether you're a player eager to dive into the adventure or a developer looking to contribute, this README serves as a valuable resource.
+##Conclusion
+The Dungeon Adventure Game is a foundational text-based exploration and combat game. It demonstrates basic game loops, data management, and logic structuring in C. With a modular design and clear data structures, it is straightforward to enhance and personalize the experience. Enjoy exploring the dungeon, collecting items, and overcoming formidable foes on your path to victory!
 
 
 
