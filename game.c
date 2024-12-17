@@ -1,3 +1,4 @@
+// oyunumuzu çalıştırırken terminale .\dungeon_game yazıp "enter" tuşuna basmalıyız.
 #include "game.h"
 
 // Global rooms array
